@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from io import BytesIO
 from string import digits
+from argon2 import PasswordHasher, exceptions
 import qrcode
 import socket
 import base64
@@ -11,15 +12,25 @@ import random
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
+ph = PasswordHasher()
 code_length = 6
 passcode = None
 config = None
+
 
 try:
     with open("config.pickle", "rb") as file:
         config = pickle.load(file)
 except FileNotFoundError:
     config = None
+
+
+def generate_hash(string: str):
+    return ph.hash(string)
+
+
+def verify_hash(string: str, hash: str):
+    return ph.verify(hash, string)
 
 
 def get_local_ip():
@@ -47,12 +58,14 @@ def generate_code():
     return ''.join(random.choice(digits) for _ in range(code_length))
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    #if request.method == 'POST':
-    #    text = request.form['qr_string']
-    #    return render_template('index.html', qr_code=generate_qrcode(text))
-    return render_template('index.html', qr_code=generate_qrcode(f"http://{get_local_ip()}:5000/scan"))
+    try:
+        qr_code = generate_qrcode(f"http://{get_local_ip()}:5000/scan")
+    except Exception as e:
+        print(e)
+        return "QR code generation failed", 500
+    return render_template('index.html',  qr_code=qr_code)
 
 
 @app.route('/scan', methods=['GET', 'POST'])
@@ -60,11 +73,14 @@ def scan():
     if config is not None:
         if request.method == 'POST':
             password = request.form['password']
-            if password == config:
+            try:
+                verify_hash(password, config)
+            except exceptions.VerifyMismatchError:
+                return render_template('scan.html', error="Incorrect passcode.")
+            else:
                 socketio.emit('scanned')
                 passcode = generate_code()
                 return redirect(url_for('code', code=passcode))
-            return render_template('scan.html', error="Incorrect passcode.")
         return render_template('scan.html')
     return redirect(url_for('configuration'))
 
@@ -75,6 +91,7 @@ def configuration():
         password = request.form['password']
         if len(password) < 8:
             return render_template('config.html', error="Passcode must be at least 8 characters long.")
+        password = generate_hash(password)
         with open("config.pickle", "wb") as file:
             pickle.dump(password, file)
         global config
@@ -103,6 +120,7 @@ def verification():
         code_entered = ''.join([code1, code2, code3, code4, code5, code6])
         if code_entered == passcode:
             passcode = None
+            socketio.emit('verified')
             return redirect("http://www.example.com")
     return render_template('verification.html')
 

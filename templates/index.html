@@ -14,16 +14,6 @@
     </script>
 </head>
 <body>
-<!--
-    <h1>Generate QR Code</h1>
-    {% if not qr_code %}
-    <form method="POST">
-        <label for="qr_string">Enter text to generate QR code:</label>
-        <input type="text" id="qr_string" name="qr_string" required>
-        <button type="submit">Generate</button>
-    </form>
-    {% endif %}
--->
     {% if qr_code %}
         <h2>Scan the QR code to verify</h2>
         <img src="{{ qr_code }}" alt="QR Code">

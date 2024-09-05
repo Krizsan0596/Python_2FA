@@ -3,27 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Your verification code</title>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
   <script>
-    window.onload = function() {
-    let timeLeft = {{ valid }};
-    const countdownEl = document.getElementById('countdown');
+      window.onload = function() {
+        const socket = io();
+        let timeLeft = {{ valid }};
+        const countdownEl = document.getElementById('countdown');
+        const codeEl = document.getElementById('code');
+        const verifiedEl = document.getElementById('verified');
+        let countdownTimer;
 
-    const countdownTimer = setInterval(function() {
-      if (timeLeft <= 0) {
-        clearInterval(countdownTimer);
-        window.location.reload();
-      } else {
-        countdownEl.innerHTML = `${timeLeft}`;
+        function updateCountdown() {
+          if (timeLeft <= 0) {
+            clearInterval(countdownTimer);
+            window.location.reload();
+          } else {
+            countdownEl.innerHTML = `${timeLeft}`;
+            timeLeft--;
+          }
+        }
+
+        function startTimer() {
+          countdownTimer = setInterval(updateCountdown, 1000);
+        }
+
+        function stopTimer() {
+          clearInterval(countdownTimer);
+        }
+
+        startTimer();
+
+        socket.on('verified', () => {
+          stopTimer();
+          countdownEl.innerHTML = "";
+          codeEl.innerHTML = "";
+          verifiedEl.innerHTML = "Verification code accepted. You may close this tab.";
+        });
       }
-      timeLeft -= 1;
-    }, 1000);
-
   </script>
 </head>
 <body>
   <div style="display:flex; gap:1rem;">
     <p style="color:red; font-size:72px; flex:1;" id="countdown">{{ valid }}</p>
-    <p style="flex:1; font-size:36px;">Your verification code is: {{ passcode }}</p>
+    <p style="flex:1; font-size:36px;" id="code">Your verification code is: {{ passcode }}</p>
   </div>
+    <p style="font-size:108;" id="verified"></p>
 </body>
 </html>

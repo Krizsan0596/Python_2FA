@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your verification code</title>
+  <script>
+    window.onload = function() {
+    let timeLeft = {{ valid }};
+    const countdownEl = document.getElementById('countdown');
+
+    const countdownTimer = setInterval(function() {
+      if (timeLeft <= 0) {
+        clearInterval(countdownTimer);
+        window.location.reload();
+      } else {
+        countdownEl.innerHTML = `${timeLeft}`;
+      }
+      timeLeft -= 1;
+    }, 1000);
+
+  </script>
+</head>
+<body>
+  <div style="display:flex; gap:1rem;">
+    <p style="color:red; font-size:72px; flex:1;" id="countdown">{{ valid }}</p>
+    <p style="flex:1; font-size:36px;">Your verification code is: {{ passcode }}</p>
+  </div>
+</body>
+</html>

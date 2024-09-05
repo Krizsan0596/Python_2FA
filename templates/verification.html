@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify your identity</title>
+    <style>
+        .code-input-box {
+        flex:1;
+        height:100%;
+        width:50px;
+        font-size:36px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            window.addEventListener('DOMContentLoaded', () => {
+                const firstInputBox = document.querySelector('.code-input-box');
+                firstInputBox.focus();
+            });
+            const codeInputBoxes = document.querySelectorAll('.code-input-box');
+
+            codeInputBoxes.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    if (input.value.length === input.maxLength) {
+                        if (index === codeInputBoxes.length - 1) {
+                            // Last input field, do something else if needed
+                            return;
+                        }
+                        codeInputBoxes[index + 1].focus();
+                    }
+                });
+
+            input.addEventListener('keydown', (event) => {
+            if (event.key === 'Backspace' && input.value.length === 0) {
+                if (index === 0) {
+                    // First input field, do nothing
+                    return;
+                }
+                codeInputBoxes[index - 1].value = '';
+                codeInputBoxes[index - 1].focus();
+            }
+        });
+    });
+
+}
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2 style="color: red;">{{ error }}</h2>
+        <form method="POST">
+            <div id="code-input" style="display:flex; gap:10px; height:100px; justify-content:center; align-items:center;">
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_1" autofocus>
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_2">
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_3">
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_4">
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_5">
+                <input type="text" maxlength="1" class="code-input-box" pattern="[0-9]*" inputmode="numeric" name="code_digit_6">
+            </div>
+            <p></p>
+            <div style="display:flex; justify-content:center; align-items:center;">
+                <input type="submit" value="Submit" style="font-size: 36px; padding: 10px;">
+            </div>
+        </form>
+    </div>
+</body>
+</html>
